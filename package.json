@@ -1,0 +1,17 @@
+{
+  "name": "drive-challenge",
+  "version": "1.0.0",
+  "description": "Solution to Drive's coding challenge.",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node ./src/index.ts"
+  },
+  "author": "Jake Rider",
+  "license": "ISC",
+  "devDependencies": {
+    "@tsconfig/node18": "^18.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
