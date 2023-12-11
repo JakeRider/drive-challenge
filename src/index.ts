@@ -121,11 +121,9 @@ async function main() {
     })
   );
 
-  console.log(results);
-
   await db.close();
 
-  console.log('Done');
+  console.log(results.join('\n'));
 }
 
 main();
