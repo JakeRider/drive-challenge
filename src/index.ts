@@ -2,7 +2,7 @@
 
 import readline from 'readline';
 import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { open, Database } from 'sqlite';
 
 enum Command {
   Partner = 'Partner',
@@ -39,7 +39,59 @@ const schema = /* sql */ `
   );
 `;
 
-async function main() {
+export async function processLine(
+  line: string,
+  db: Database<sqlite3.Database, sqlite3.Statement>
+) {
+  const tokens = line.split(' ');
+
+  switch (tokens[0]) {
+    case Command.Partner:
+      await db.run('INSERT INTO partners (partner_name) VALUES (?)', tokens[1]);
+      break;
+    case Command.Company:
+      await db.run(
+        'INSERT INTO companies (company_name) VALUES (?)',
+        tokens[1]
+      );
+      break;
+    case Command.Employee:
+      const { id } = await db.get(
+        'SELECT id FROM companies WHERE company_name = ?',
+        tokens[2]
+      );
+      await db.run(
+        'INSERT INTO employees (employee_name, company_id) VALUES (?, ?)',
+        tokens[1],
+        id
+      );
+      break;
+    case Command.Contact:
+      const { id: employeeId } = await db.get(
+        'SELECT id FROM employees WHERE employee_name = ?',
+        tokens[1]
+      );
+      const { id: partnerId } = await db.get(
+        'SELECT id FROM partners WHERE partner_name = ?',
+        tokens[2]
+      );
+
+      if (!['email', 'call', 'coffee'].includes(tokens[3]))
+        throw new Error(`Unknown contact type: ${tokens[3]}`);
+
+      await db.run(
+        'INSERT INTO contacts (employee_id, partner_id, contact_type) VALUES (?, ?, ?)',
+        employeeId,
+        partnerId,
+        tokens[3]
+      );
+      break;
+    default:
+      throw new Error(`Unknown command type: ${tokens[0]}`);
+  }
+}
+
+export async function main() {
   const db = await open({ filename: ':memory:', driver: sqlite3.Database });
 
   await db.exec(schema);
@@ -47,55 +99,7 @@ async function main() {
   const lines = readline.createInterface(process.stdin);
 
   for await (const line of lines) {
-    const tokens = line.split(' ');
-
-    switch (tokens[0]) {
-      case Command.Partner:
-        await db.run(
-          'INSERT INTO partners (partner_name) VALUES (?)',
-          tokens[1]
-        );
-        break;
-      case Command.Company:
-        await db.run(
-          'INSERT INTO companies (company_name) VALUES (?)',
-          tokens[1]
-        );
-        break;
-      case Command.Employee:
-        const { id } = await db.get(
-          'SELECT id FROM companies WHERE company_name = ?',
-          tokens[2]
-        );
-        await db.run(
-          'INSERT INTO employees (employee_name, company_id) VALUES (?, ?)',
-          tokens[1],
-          id
-        );
-        break;
-      case Command.Contact:
-        const { id: employeeId } = await db.get(
-          'SELECT id FROM employees WHERE employee_name = ?',
-          tokens[1]
-        );
-        const { id: partnerId } = await db.get(
-          'SELECT id FROM partners WHERE partner_name = ?',
-          tokens[2]
-        );
-
-        if (!['email', 'call', 'coffee'].includes(tokens[3]))
-          throw new Error(`Unknown contact type: ${tokens[3]}`);
-
-        await db.run(
-          'INSERT INTO contacts (employee_id, partner_id, contact_type) VALUES (?, ?, ?)',
-          employeeId,
-          partnerId,
-          tokens[3]
-        );
-        break;
-      default:
-        throw new Error(`Unknown command type: ${tokens[0]}`);
-    }
+    await processLine(line, db);
   }
 
   const companies = await db.all(
