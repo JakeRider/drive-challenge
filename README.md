@@ -13,5 +13,5 @@
 
 ## Notes
 
-- The program checks for invalid commands and contact types, but it will not handle invalid an _order_ for commands, e.g. an attempt to create an employee at a company that doesn't exist, or incorrectly spelled references to a valid company/partner/employee. Given that the instructions specified I would not have malformed data, I interpeted that as meaning I would not have to worry about those edge case in this exercise.
+- The program checks for invalid commands and contact types, but it will not handle invalid _order_ for commands, e.g. an attempt to create an employee at a company that doesn't exist, or incorrectly spelled references to a valid company/partner/employee. Given that the instructions specified I would not have malformed data, I interpeted that as meaning I would not have to worry about those edge case in this exercise.
 - If you're curious why some of the template string are prefaced with `/* sql */`, it's because I have an extension for my editor that applies syntax highlighting to strings prefaced with that comment. I was going to list it here, but I realized I don't remember which extension is doing it. 😅
